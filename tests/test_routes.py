@@ -28,11 +28,11 @@ import os
 import logging
 from decimal import Decimal
 from unittest import TestCase
+from urllib.parse import quote_plus
 from service import app
 from service.common import status
 from service.models import db, init_db, Product
 from tests.factories import ProductFactory
-from urllib.parse import quote_plus
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
@@ -84,7 +84,8 @@ class TestProductRoutes(TestCase):
         products = []
         for _ in range(count):
             test_product = ProductFactory()
-            response = self.client.post(BASE_URL, json=test_product.serialize())
+            response = self.client.post(
+                BASE_URL, json=test_product.serialize())
             self.assertEqual(
                 response.status_code, status.HTTP_201_CREATED, "Could not create test product"
             )
@@ -157,12 +158,15 @@ class TestProductRoutes(TestCase):
     def test_create_product_no_content_type(self):
         """It should not Create a Product with no Content-Type"""
         response = self.client.post(BASE_URL, data="bad data")
-        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertEqual(response.status_code,
+                         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_product_wrong_content_type(self):
         """It should not Create a Product with wrong Content-Type"""
-        response = self.client.post(BASE_URL, data={}, content_type="plain/text")
-        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        response = self.client.post(
+            BASE_URL, data={}, content_type="plain/text")
+        self.assertEqual(response.status_code,
+                         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     #
     # ADD YOUR TEST CASES HERE
@@ -194,7 +198,8 @@ class TestProductRoutes(TestCase):
         # update the product
         new_product = response.get_json()
         new_product["description"] = "unknown"
-        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
+        response = self.client.put(
+            f"{BASE_URL}/{new_product['id']}", json=new_product)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_product = response.get_json()
         self.assertEqual(updated_product["description"], "unknown")
@@ -225,7 +230,8 @@ class TestProductRoutes(TestCase):
         """It should Query Products by name"""
         products = self._create_products(5)
         test_name = products[0].name
-        name_count = len([product for product in products if product.name == test_name])
+        name_count = len(
+            [product for product in products if product.name == test_name])
         response = self.client.get(
             BASE_URL, query_string=f"name={quote_plus(test_name)}"
         )
@@ -245,7 +251,8 @@ class TestProductRoutes(TestCase):
         logging.debug("Found Products [%d] %s", found_count, found)
 
         # test for available
-        response = self.client.get(BASE_URL, query_string=f"category={category.name}")
+        response = self.client.get(
+            BASE_URL, query_string=f"category={category.name}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), found_count)
